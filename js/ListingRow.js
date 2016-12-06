@@ -13,15 +13,29 @@ import {
 import moment from 'moment';
 
 export default class ListingRow extends Component {
+
+  
+
   render() {
+    const ALL_IMAGES_BY_ID = {
+      'reddit_default': require('./img/place_holder.png'),
+    };  
     const listing = this.props.listing;
+    let previeImageUrl;
+    if(listing.thumbnail === 'default') {
+      previeImageUrl = ALL_IMAGES_BY_ID.reddit_default;
+    }else if(listing.thumbnail === 'self'){
+      previeImageUrl = ALL_IMAGES_BY_ID.reddit_default;
+    }else{
+      previeImageUrl = {uri: listing.thumbnail};
+    }
     return (
       <TouchableOpacity 
         onPress={this.props.onClick}>
         <View style={styles.container}>
           <Image 
             style={styles.previewImage}
-            source={{uri: listing.thumbnail}}
+            source={previeImageUrl}
           />
           <View style={styles.textContainer}>
             <Text>{listing.title}</Text>
@@ -53,7 +67,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title: {
-    
+    fontSize: 17,
+    color: '#333',
+    marginBottom: 4
   },
   postTime: {
 

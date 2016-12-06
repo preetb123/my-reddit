@@ -22,8 +22,7 @@ export default class MyReddit extends Component {
   render() {
     return (
       <NavigationProvider router={Router}>
-        <StatusBar 
-          
+        <StatusBar
           barStyle="light-content"
         />
         <StackNavigation initialRoute={Router.getRoute('frontPage')} />

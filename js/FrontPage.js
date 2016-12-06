@@ -10,7 +10,8 @@ import {
   TouchableOpacity,
   ListView,
   RefreshControl,
-  ActivityIndicator
+  ActivityIndicator,
+  AppState
 } from 'react-native';
 
 import { loadPosts } from './reddit-api';
@@ -44,13 +45,52 @@ export default class FrontPage extends Component {
       isLoadingMore: true
     });
     this.fetchData().done();
-    // this.setTimeout(() => {
-    //   this.fetchData().done();
-    // }, (1000 * 15));
+
+    if(!this.autoRefreshHandler){
+      this.setupPeriodicRefresh();
+    }
+    AppState.addEventListener('change', this._handleAppStateChange);
+  }
+
+  setupPeriodicRefresh = () => {
+    console.log("setting up periodic updates");
+    // setup the interval for periodic refresh
+    this.autoRefreshHandler = setInterval(() => {
+      if(this.state.isRefreshing || this.state.isLoadingMore){
+        return;
+      }
+      console.log("refreshing contents");
+      this.setState({
+        nextToken: null,
+        listings: []
+      }, () => {
+        this.fetchData().done();
+      });
+    }, (1000 * 15));
   }
 
   componentWillUnmount() {
-    // clear the timeout
+    console.log("componentWillUnmount");
+    // clear the interval
+    clearInterval(this.autoRefreshHandler);
+
+    AppState.removeEventListener('change', this._handleAppStateChange);
+  }
+
+  _handleAppStateChange(currentAppState){
+    console.log("current app state: ", currentAppState);  
+    if(currentAppState === 'background'){
+      console.log("app going to background");
+      if(this.autoRefreshHandler){
+        console.log("disabling periodic updates");
+        clearInterval(this.autoRefreshHandler);
+        this.autoRefreshHandler = null;
+      }
+    }else if(currentAppState === 'active'){
+      if(!this.autoRefreshHandler){
+        this.setupPeriodicRefresh();
+      }
+    }
   }
 
   async fetchData(){

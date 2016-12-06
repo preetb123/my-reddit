@@ -16,9 +16,17 @@ export default class StoryView extends Component {
   }
 
   render() {
+    let url;
+    let receivedUrl = this.props.route.params.url;
+    if(receivedUrl.includes('amp;')){
+      url = receivedUrl.replace(new RegExp('amp;', 'g'), '');
+    }else{
+      url = receivedUrl;
+    }
+    console.log("opening url: ", url);
     return (
       <WebView 
-        source={{ uri: this.props.route.params.url }}
+        source={{ uri: url }}
         javaScriptEnabled={true}
         startInLoadingState={true}
       />
