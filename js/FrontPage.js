@@ -17,8 +17,30 @@ import {
 import { loadPosts } from './reddit-api';
 import { Router } from './App';
 import ListingRow from './ListingRow';
+import type { Listing } from './reddit-api';
 
+type State = {
+  listing: Array<Listing>;
+  isRefreshing: boolean;
+  isLoadingMore: boolean;
+  hasError: boolean;
+  nextToken: string;
+  dataSource: ListView.DataSource;
+};
+
+type Props = {
+  route: ExNavigationRoute;  
+};
+
+/**
+ * Screen displaying Reddit front page.
+ * The contents auto-refresh every 30 seconds.
+ * @export
+ * @class FrontPage
+ * @extends {Component}
+ */
 export default class FrontPage extends Component {
+
   static route = {
     navigationBar: {
       title: 'My Reddit'
@@ -66,7 +88,7 @@ export default class FrontPage extends Component {
       }, () => {
         this.fetchData().done();
       });
-    }, (1000 * 15));
+    }, (1000 * 30));
   }
 
   componentWillUnmount() {
@@ -154,8 +176,13 @@ export default class FrontPage extends Component {
   _renderSeparator = (sectionID, rowID, adjacentRowHighlighted) => {
     return (
       <View
-        key={rowId}
-        style={styles.itemSeparator}
+        key={`${sectionID}-${rowID}`}
+        style={{
+          marginLeft: 4,
+          marginRight: 4,
+          height: adjacentRowHighlighted ? 4 : StyleSheet.hairlineWidth,
+          backgroundColor: adjacentRowHighlighted ? '#3B5998' : '#CCCCCC',
+        }} 
       />
     );
   }
@@ -165,7 +192,7 @@ export default class FrontPage extends Component {
     if(this.state.hasError){
       return (
         <View style={styles.container}>
-          <Text>
+          <Text style={styles.error}>
             Something went wrong!
           </Text>  
         </View>
@@ -185,7 +212,7 @@ export default class FrontPage extends Component {
         onEndReached={this._onEndReached}
         onEndReachedThreshold={10}
         renderFooter={this._renderFooter}
-        renderSeparator={() => this._renderSeparator}
+        renderSeparator={this._renderSeparator}
         renderRow={
           (data) => <ListingRow
                       key={data.data.id}
@@ -209,10 +236,9 @@ const styles = StyleSheet.create({
     flex: 1
   },
   error: {
-  },
-  itemSeparator: {
-    height: 1,
-    backgroundColor: '#CCCCCC'
+    fontSize: 40,
+    margin: 10,
+    paddingTop: 64
   },
   activityIndicator: {
     alignItems: 'center',

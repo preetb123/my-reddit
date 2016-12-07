@@ -9,13 +9,26 @@ import {
   TouchableOpacity, 
   StyleSheet 
 } from 'react-native'; 
-
+// for relative time strings from epoch value
 import moment from 'moment';
+import type { Listing } from './reddit-api';
 
+type State = {
+
+};
+
+type Props = {
+  listing: Listing;
+};
+
+/**
+ * Row for the Reddit front page ListView
+ * 
+ * @export
+ * @class ListingRow
+ * @extends {Component}
+ */
 export default class ListingRow extends Component {
-
-  
-
   render() {
     const ALL_IMAGES_BY_ID = {
       'reddit_default': require('./img/place_holder.png'),
@@ -26,9 +39,12 @@ export default class ListingRow extends Component {
       previeImageUrl = ALL_IMAGES_BY_ID.reddit_default;
     }else if(listing.thumbnail === 'self'){
       previeImageUrl = ALL_IMAGES_BY_ID.reddit_default;
+    }else if(listing.thumbnail === 'nsfw'){
+      previeImageUrl = ALL_IMAGES_BY_ID.reddit_default;
     }else{
       previeImageUrl = {uri: listing.thumbnail};
     }
+
     return (
       <TouchableOpacity 
         onPress={this.props.onClick}>
@@ -40,9 +56,12 @@ export default class ListingRow extends Component {
           <View style={styles.textContainer}>
             <Text>{listing.title}</Text>
             <Text style={styles.details}>
-              {listing.score}
-              {' • '}
               {moment(listing.created_utc, "X").startOf('seconds').fromNow()}
+              {' • '}
+              by { listing.author }
+              {' • '}
+              {'\u2605'}
+              {listing.score}
             </Text>
           </View>
         </View>
@@ -65,6 +84,7 @@ const styles = StyleSheet.create({
   },
   textContainer: {
     flex: 1,
+    paddingTop: 1
   },
   title: {
     fontSize: 17,
@@ -74,11 +94,17 @@ const styles = StyleSheet.create({
   postTime: {
 
   },
+  author:{  
+    fontWeight: 'bold'
+  },
   votes: {
-
+    height: 10,
+    width: 10,
+    padding: 8
   },
   details: {
     fontSize: 12,
     color: '#999',
+    alignItems: 'center'
   }
 });

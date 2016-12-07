@@ -1,4 +1,4 @@
-# MyReddit
+# MyReddit [![Build Status](https://travis-ci.org/preetb123/my-reddit.svg?branch=master)](https://travis-ci.org/preetb123/my-reddit)
 A simple [Reddit](https://www.reddit.com/) client for Android & iOS
 
 ## Setup
