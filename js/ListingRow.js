@@ -54,7 +54,7 @@ export default class ListingRow extends Component {
             source={previeImageUrl}
           />
           <View style={styles.textContainer}>
-            <Text>{listing.title}</Text>
+            <Text style={styles.title}>{listing.title}</Text>
             <Text style={styles.details}>
               {moment(listing.created_utc, "X").startOf('seconds').fromNow()}
               {' • '}
@@ -83,11 +83,10 @@ const styles = StyleSheet.create({
     width: 70,
   },
   textContainer: {
-    flex: 1,
-    paddingTop: 1
+    flex: 1
   },
   title: {
-    fontSize: 17,
+    fontSize: 16,
     color: '#333',
     marginBottom: 4
   },

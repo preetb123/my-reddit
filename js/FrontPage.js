@@ -25,6 +25,8 @@ type State = {
   isLoadingMore: boolean;
   hasError: boolean;
   nextToken: string;
+  offset: number;
+  hasMore: boolean;
   dataSource: ListView.DataSource;
 };
 
@@ -40,6 +42,9 @@ type Props = {
  * @extends {Component}
  */
 export default class FrontPage extends Component {
+  static defaultProps = {
+    offset: 0
+  };
 
   static route = {
     navigationBar: {
@@ -54,7 +59,9 @@ export default class FrontPage extends Component {
       isRefreshing: false,
       isLoadingMore: false,
       hasError: false,
+      offset: this.props.offset,
       nextToken: null,
+      hasMore: true,
       dataSource: new ListView.DataSource({
         rowHasChanged: (r1, r2) => r1 !== r2
       })
@@ -67,14 +74,13 @@ export default class FrontPage extends Component {
       isLoadingMore: true
     });
     this.fetchData().done();
-
     if(!this.autoRefreshHandler){
       this.setupPeriodicRefresh();
     }
     AppState.addEventListener('change', this._handleAppStateChange);
   }
 
-  setupPeriodicRefresh = () => {
+  setupPeriodicRefresh(){
     console.log("setting up periodic updates");
     // setup the interval for periodic refresh
     this.autoRefreshHandler = setInterval(() => {
@@ -82,13 +88,42 @@ export default class FrontPage extends Component {
         return;
       }
       console.log("refreshing contents");
-      this.setState({
-        nextToken: null,
-        listings: []
-      }, () => {
-        this.fetchData().done();
-      });
+      this.refreshContents().done();
     }, (1000 * 30));
+  }
+
+  async refreshContents(){
+    console.log("refreshContents");
+    try{
+      let data = await loadPosts(null, 0);
+      let currentListings = this.state.listings;
+      console.log("currentListings: ", currentListings.length);
+      let newListings;
+      let newNextToken;
+      let newOffset;
+      if(currentListings.length > 25){
+        newListings = data.children.concat(currentListings.slice(25, currentListings.length));
+        newNextToken = this.state.nextToken;
+        newOffset = this.state.offset;
+      }else{
+        newListings = data.children;
+        newNextToken = data.after;
+        newOffset = data.children.length;
+      }
+      console.log("newListing: ", newListings.length);
+      this.setState({
+        isRefreshing: false,
+        nextToken: newNextToken,
+        listings: newListings,
+        offset: newOffset,
+        hasMore: newNextToken == null ? false : true,
+        dataSource: this.state.dataSource.cloneWithRows(newListings)
+      }, () => {
+        console.log("dataSource: ", this.state.dataSource.getRowCount());
+      });
+    }catch(err){
+      console.log("Error refreshing: ", err);
+    }
   }
 
   componentWillUnmount() {
@@ -110,22 +145,30 @@ export default class FrontPage extends Component {
       }
     }else if(currentAppState === 'active'){
       if(!this.autoRefreshHandler){
-        this.setupPeriodicRefresh();
+        () => this.setupPeriodicRefresh();
       }
     }
   }
 
-  async fetchData(){
+  async fetchData(autoRefresh, manualRefresh, loadMore){
+    console.log("fetchData");
+    if(this.state.isLoadingMore || this.state.isRefreshing || !this.state.hasMore || this.state.hasError)
+      return;
     try{
-      const data = await loadPosts(this.state.nextToken);
+      const data = await loadPosts(this.state.nextToken, this.state.offset);
       const newListings = this.state.listings.concat(data.children);
+      console.log("dataSource before: ", this.state.dataSource.getRowCount());
       this.setState({
         hasError: false,
         isLoadingMore: false,
         isRefreshing: false,
         nextToken: data.after,
+        offset: this.state.offset + data.children.length,
         listings: newListings,
+        hasMore: (data.after == null) ? false : true,  
         dataSource: this.state.dataSource.cloneWithRows(newListings)
+      }, () => {
+        console.log("dataSource after: ", this.state.dataSource.getRowCount());
       });
     }catch(err){
       console.log("error: ", err);
@@ -145,15 +188,17 @@ export default class FrontPage extends Component {
     console.log("onRefresh");
     this.setState({
       isRefreshing: true,
-      nextToken: null,
-      listings: []
+      listings: [],
+      hasMore: true
     }, () => {
-      this.fetchData();
+      this.refreshContents().done();
     });  
   }
 
   _onEndReached = () => {
     console.log("onEndReached");
+    if(this.state.isLoadingMore) 
+      return;
     this.setState({
       isLoadingMore: true
     });

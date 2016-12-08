@@ -22,8 +22,8 @@
   },
   "jest": {
     "preset": "react-native",
-    "transformIgnorePatterns":[
-      "node_modules/(?!react-native|my-project|@exponent/ex-navigation|moment)"
+    "transformIgnorePatterns": [
+      "node_modules/@exponent//ex-navigation"
     ]
   }
 }

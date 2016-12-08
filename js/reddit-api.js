@@ -21,7 +21,6 @@ export type Listing = {
 };
 
 const REDDIT_BASE_URL = 'http://www.reddit.com';
-
 /**
  * Loads the listings based on nextToken. 
  * 
