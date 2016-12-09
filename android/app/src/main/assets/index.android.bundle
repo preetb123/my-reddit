@@ -72763,25 +72763,24 @@ props));_this.
 
 
 
+
+
+
+
+
+
+
+
 _onRefresh=function(){
 console.log("onRefresh");
-_this.setState({
-isRefreshing:true,
-listings:[],
-hasMore:true},
-function(){
-_this.refreshContents().done();
-});
+
+_this.fetchData(false,true,false).done();
 };_this.
 
 _onEndReached=function(){
 console.log("onEndReached");
-if(_this.state.isLoadingMore)
-return;
-_this.setState({
-isLoadingMore:true});
 
-_this.fetchData().done();
+_this.fetchData(false,false,true).done();
 };_this.
 
 _renderFooter=function(){
@@ -72809,9 +72808,9 @@ backgroundColor:adjacentRowHighlighted?'#3B5998':'#CCCCCC'}}));
 
 
 
-};_this.state={listings:[],isRefreshing:false,isLoadingMore:false,hasError:false,offset:_this.props.offset,nextToken:null,hasMore:true,dataSource:new _reactNative.ListView.DataSource({rowHasChanged:function rowHasChanged(r1,r2){return r1!==r2;}})};return _this;}babelHelpers.createClass(FrontPage,[{key:'componentDidMount',value:function componentDidMount(){console.log("componentDidMount");this.setState({isLoadingMore:true});this.fetchData().done();if(!this.autoRefreshHandler){this.setupPeriodicRefresh();}_reactNative.AppState.addEventListener('change',this._handleAppStateChange);}},{key:'setupPeriodicRefresh',value:function setupPeriodicRefresh(){var _this2=this;console.log("setting up periodic updates");this.autoRefreshHandler=setInterval(function(){if(_this2.state.isRefreshing||_this2.state.isLoadingMore){return;}console.log("refreshing contents");_this2.refreshContents().done();},1000*30);}},{key:'refreshContents',value:function refreshContents(){var _this3=this;var data,currentListings,newListings,newNextToken,newOffset;return regeneratorRuntime.async(function refreshContents$(_context){while(1){switch(_context.prev=_context.next){case 0:console.log("refreshContents");_context.prev=1;_context.next=4;return regeneratorRuntime.awrap((0,_redditApi.loadPosts)(null,0));case 4:data=_context.sent;currentListings=this.state.listings;console.log("currentListings: ",currentListings.length);newListings=void 0;newNextToken=void 0;newOffset=void 0;if(currentListings.length>25){newListings=data.children.concat(currentListings.slice(25,currentListings.length));newNextToken=this.state.nextToken;newOffset=this.state.offset;}else{newListings=data.children;newNextToken=data.after;newOffset=data.children.length;}console.log("newListing: ",newListings.length);this.setState({isRefreshing:false,nextToken:newNextToken,listings:newListings,offset:newOffset,dataSource:this.state.dataSource.cloneWithRows(newListings)},function(){console.log("dataSource: ",_this3.state.dataSource.getRowCount());});_context.next=18;break;case 15:_context.prev=15;_context.t0=_context['catch'](1);console.log("Error refreshing: ",_context.t0);case 18:case'end':return _context.stop();}}},null,this,[[1,15]]);}},{key:'componentWillUnmount',value:function componentWillUnmount(){console.log("componentWillUnmount");clearInterval(this.autoRefreshHandler);_reactNative.AppState.removeEventListener('change',this._handleAppStateChange);}},{key:'_handleAppStateChange',value:function _handleAppStateChange(currentAppState){var _this4=this;console.log("current app state: ",currentAppState);if(currentAppState==='background'){console.log("app going to background");if(this.autoRefreshHandler){console.log("disabling periodic updates");clearInterval(this.autoRefreshHandler);this.autoRefreshHandler=null;}}else if(currentAppState==='active'){if(!this.autoRefreshHandler){(function(){return _this4.setupPeriodicRefresh();});}}}},{key:'fetchData',value:function fetchData(autoRefresh,manualRefresh,loadMore){var _this5=this;var data,newListings;return regeneratorRuntime.async(function fetchData$(_context2){while(1){switch(_context2.prev=_context2.next){case 0:console.log("fetchData");if(!(this.state.isLoadingMore||this.state.isRefreshing||!this.state.hasMore||this.state.hasError)){_context2.next=3;break;}return _context2.abrupt('return');case 3:_context2.prev=3;_context2.next=6;return regeneratorRuntime.awrap((0,_redditApi.loadPosts)(this.state.nextToken,this.state.offset));case 6:data=_context2.sent;newListings=this.state.listings.concat(data.children);console.log("dataSource before: ",this.state.dataSource.getRowCount());this.setState({hasError:false,isLoadingMore:false,isRefreshing:false,nextToken:data.after,offset:this.state.offset+data.children.length,listings:newListings,hasMore:data.after==null?false:true,dataSource:this.state.dataSource.cloneWithRows(newListings)},function(){console.log("dataSource after: ",_this5.state.dataSource.getRowCount());});_context2.next=16;break;case 12:_context2.prev=12;_context2.t0=_context2['catch'](3);console.log("error: ",_context2.t0);this.setState({isLoadingMore:false,isRefreshing:false,hasError:true});case 16:case'end':return _context2.stop();}}},null,this,[[3,12]]);}},{key:'_viewStory',value:function _viewStory(data){this.props.navigator.push(_App.Router.getRoute('storyView',{url:data.url,title:data.title}));}},{key:'render',value:function render()
+};_this.state={listings:[],isRefreshing:false,isLoadingMore:false,hasError:false,offset:_this.props.offset,nextToken:null,hasMore:true,dataSource:new _reactNative.ListView.DataSource({rowHasChanged:function rowHasChanged(r1,r2){return r1!==r2;}})};return _this;}babelHelpers.createClass(FrontPage,[{key:'componentDidMount',value:function componentDidMount(){console.log("componentDidMount");this.fetchData(false,false,true).done();if(!this.autoRefreshHandler){this.setupPeriodicRefresh();}_reactNative.AppState.addEventListener('change',this._handleAppStateChange);}},{key:'setupPeriodicRefresh',value:function setupPeriodicRefresh(){var _this2=this;console.log("setting up periodic updates");this.autoRefreshHandler=setInterval(function(){console.log("refreshing contents");_this2.fetchData(true,false,false).done();},1000*30);}},{key:'componentWillUnmount',value:function componentWillUnmount(){console.log("componentWillUnmount");clearInterval(this.autoRefreshHandler);_reactNative.AppState.removeEventListener('change',this._handleAppStateChange);}},{key:'_handleAppStateChange',value:function _handleAppStateChange(currentAppState){var _this3=this;console.log("current app state: ",currentAppState);if(currentAppState==='background'){console.log("app going to background");if(this.autoRefreshHandler){console.log("disabling periodic updates");clearInterval(this.autoRefreshHandler);this.autoRefreshHandler=null;}}else if(currentAppState==='active'){if(!this.autoRefreshHandler){(function(){return _this3.setupPeriodicRefresh();});}}}},{key:'fetchData',value:function fetchData(autoRefresh,manualRefresh,loadMore){var _this4=this;var nextToken,offset,data,newListings;return regeneratorRuntime.async(function fetchData$(_context){while(1){switch(_context.prev=_context.next){case 0:console.log("fetchData");if(!(this.state.isLoadingMore||this.state.isRefreshing||!this.state.hasMore||this.state.hasError)){_context.next=3;break;}return _context.abrupt('return');case 3:nextToken=void 0;offset=void 0;if(autoRefresh){nextToken=null;offset=0;}else if(manualRefresh){this.setState({isRefreshing:true,hasMore:true});nextToken=null;offset=0;}else if(loadMore){this.setState({isLoadingMore:true});nextToken=this.state.nextToken;offset=this.state.offset;}_context.prev=6;_context.next=9;return regeneratorRuntime.awrap((0,_redditApi.loadPosts)(nextToken,offset));case 9:data=_context.sent;console.log("dataSource before: ",this.state.dataSource.getRowCount());newListings=void 0;if(autoRefresh){if(this.state.listings.length>25){newListings=data.children.concat(this.state.listings.slice(25,this.state.listings.length));nextToken=this.state.nextToken;offset=this.state.offset;}else{newListings=data.children;nextToken=data.after;offset=data.children.length;}}else if(manualRefresh){newListings=data.children;nextToken=data.after;offset=data.children.length;}else if(loadMore){newListings=this.state.listings.concat(data.children);nextToken=data.after;offset=this.state.offset+data.children.length;}this.setState({hasError:false,isLoadingMore:false,isRefreshing:false,nextToken:nextToken,offset:offset,listings:newListings,hasMore:nextToken==null?false:true,dataSource:this.state.dataSource.cloneWithRows(newListings)},function(){console.log("dataSource after: ",_this4.state.dataSource.getRowCount());});_context.next=20;break;case 16:_context.prev=16;_context.t0=_context['catch'](6);console.log("error: ",_context.t0);this.setState({isLoadingMore:false,isRefreshing:false,hasError:true});case 20:case'end':return _context.stop();}}},null,this,[[6,16]]);}},{key:'_viewStory',value:function _viewStory(data){this.props.navigator.push(_App.Router.getRoute('storyView',{url:data.url,title:data.title}));}},{key:'render',value:function render()
 
-{var _this6=this;
+{var _this5=this;
 console.log("renderFrontPage");
 if(this.state.hasError){
 return(
@@ -72841,7 +72840,7 @@ renderRow:
 function renderRow(data){return _react2.default.createElement(_ListingRow2.default,{
 key:data.data.id,
 listing:data.data,
-onClick:function onClick(){return _this6._viewStory(data.data);}});},
+onClick:function onClick(){return _this5._viewStory(data.data);}});},
 
 
 refreshControl:

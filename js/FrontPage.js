@@ -70,10 +70,8 @@ export default class FrontPage extends Component {
 
   componentDidMount() {
     console.log("componentDidMount");
-    this.setState({
-      isLoadingMore: true
-    });
-    this.fetchData().done();
+    // loadMore
+    this.fetchData(false, false, true).done();
     if(!this.autoRefreshHandler){
       this.setupPeriodicRefresh();
     }
@@ -84,53 +82,16 @@ export default class FrontPage extends Component {
     console.log("setting up periodic updates");
     // setup the interval for periodic refresh
     this.autoRefreshHandler = setInterval(() => {
-      if(this.state.isRefreshing || this.state.isLoadingMore){
-        return;
-      }
       console.log("refreshing contents");
-      this.refreshContents().done();
+      // autoRefresh
+      this.fetchData(true, false, false).done();
     }, (1000 * 30));
-  }
-
-  async refreshContents(){
-    console.log("refreshContents");
-    try{
-      let data = await loadPosts(null, 0);
-      let currentListings = this.state.listings;
-      console.log("currentListings: ", currentListings.length);
-      let newListings;
-      let newNextToken;
-      let newOffset;
-      if(currentListings.length > 25){
-        newListings = data.children.concat(currentListings.slice(25, currentListings.length));
-        newNextToken = this.state.nextToken;
-        newOffset = this.state.offset;
-      }else{
-        newListings = data.children;
-        newNextToken = data.after;
-        newOffset = data.children.length;
-      }
-      console.log("newListing: ", newListings.length);
-      this.setState({
-        isRefreshing: false,
-        nextToken: newNextToken,
-        listings: newListings,
-        offset: newOffset,
-        hasMore: newNextToken == null ? false : true,
-        dataSource: this.state.dataSource.cloneWithRows(newListings)
-      }, () => {
-        console.log("dataSource: ", this.state.dataSource.getRowCount());
-      });
-    }catch(err){
-      console.log("Error refreshing: ", err);
-    }
   }
 
   componentWillUnmount() {
     console.log("componentWillUnmount");
     // clear the interval
     clearInterval(this.autoRefreshHandler);
-
     AppState.removeEventListener('change', this._handleAppStateChange);
   }
 
@@ -154,18 +115,64 @@ export default class FrontPage extends Component {
     console.log("fetchData");
     if(this.state.isLoadingMore || this.state.isRefreshing || !this.state.hasMore || this.state.hasError)
       return;
+    let nextToken;
+    let offset;
+    if(autoRefresh){
+      // replace the first 25 rows with the new data
+      // no indicator will be shown
+      nextToken = null;
+      offset = 0;
+    }else if(manualRefresh){
+      // replace the entire data with new data
+      // pull to refresh indicator will be shown
+      this.setState({
+        isRefreshing: true,
+        hasMore: true
+      });
+      nextToken = null;
+      offset = 0;
+    }else if(loadMore){
+      // infinite scroll
+      this.setState({
+        isLoadingMore: true
+      });
+      // append the new data to the current data 
+      nextToken = this.state.nextToken;
+      offset = this.state.offset;
+    }
     try{
-      const data = await loadPosts(this.state.nextToken, this.state.offset);
-      const newListings = this.state.listings.concat(data.children);
+      const data = await loadPosts(nextToken, offset);
       console.log("dataSource before: ", this.state.dataSource.getRowCount());
+      let newListings;
+      if(autoRefresh){
+        if(this.state.listings.length > 25){
+          newListings = data.children.concat(
+            this.state.listings.slice(25, this.state.listings.length)
+          );
+          nextToken = this.state.nextToken;
+          offset = this.state.offset;
+        }else{
+          newListings = data.children;
+          nextToken = data.after;
+          offset = data.children.length
+        }
+      }else if(manualRefresh){
+        newListings = data.children;
+        nextToken = data.after;
+        offset = data.children.length
+      }else if(loadMore){
+        newListings = this.state.listings.concat(data.children);
+        nextToken = data.after;
+        offset = this.state.offset + data.children.length;
+      }
       this.setState({
         hasError: false,
         isLoadingMore: false,
         isRefreshing: false,
-        nextToken: data.after,
-        offset: this.state.offset + data.children.length,
+        nextToken: nextToken,
+        offset: offset,
         listings: newListings,
-        hasMore: (data.after == null) ? false : true,  
+        hasMore: (nextToken == null) ? false : true,  
         dataSource: this.state.dataSource.cloneWithRows(newListings)
       }, () => {
         console.log("dataSource after: ", this.state.dataSource.getRowCount());
@@ -186,23 +193,14 @@ export default class FrontPage extends Component {
 
   _onRefresh = () => {
     console.log("onRefresh");
-    this.setState({
-      isRefreshing: true,
-      listings: [],
-      hasMore: true
-    }, () => {
-      this.refreshContents().done();
-    });  
+    // manualRefresh
+    this.fetchData(false, true, false).done();  
   }
 
   _onEndReached = () => {
     console.log("onEndReached");
-    if(this.state.isLoadingMore) 
-      return;
-    this.setState({
-      isLoadingMore: true
-    });
-    this.fetchData().done();    
+    // loadMore
+    this.fetchData(false, false, true).done();    
   }
 
   _renderFooter = () => {
