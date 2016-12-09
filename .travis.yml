@@ -14,3 +14,20 @@ android:
   - addon-google_apis-google-16
 script:
 - cd android && ./gradlew assembleRelease
+deploy:
+  # Deploy the file(s) to the github release (other targets like amazon-aws or npm can be found here: http://docs.travis-ci.com/user/deployment/ )
+  provider: releases
+  # The oauth token for github (used by travis to upload the file(s) to github)
+  api_key:
+    # The api-key is encrypted like described here: http://docs.travis-ci.com/user/encryption-keys/  (only travis can decrypt the key)
+    secure: gSLGvtaR3HOChG6rrCEmZ1NeaqM26yTKEWFFCw7CLgXMR8a6aAEIOZAnPvV+/PG9yL034/XEPlwjO27M3MyAx9aiJ/n9FoVyzIEO3HTO6Lr47qY2pWoYM5iGXNrSlokO9h+ZsIZ42chjuqqFy2PReEpK6wSwDTXvBe5Kz/xCd2IJJtx/OjtZpGjgyN/7+EABEK2SgP7qukfXOzC3022riLkQlKoelgf9KJ4ljBAw8UzTIeqnvoiPCiLLHcai0J/D6ScRzViqIv0tZAaqEX/Yd1aQnamTjJsfb/2BXbsRVuy2nULe/DAZWhEVv16dRdTppwQh4kwB2mkckaLpiSlfabQudZT5ZpUMpLKfYIyjJlJjf9QxqNXfLbGVb49UgwED/bJeqov+TwKmBYCCfNX78ixFRbhkUiQ2yuieGoBTJ44I7wrC29KwoLVTEFzE4sz848nWbRuYxQIZDSaLULBQsj/i71+crJXQvYIPRq4EHoFuOMDslwT9IdrFS0VwGXOGPI3dgtIHii2NqzYl7PNUd/ZqvUT3WM056GZBpSPAOyGcPJB7QyHgtznEsDceH6uwdjzOHbR27skFyFXceAamdQy0aIxXr5dM6JeotrpNOzILkk+W8w5VcioAhpDM/THvO6TkZEqnkVhpoi/QNdbq+lWoCNxa312q2vDBkm9S8Bo=
+  # Which file(s) to upload
+  file: "$TRAVIS_BUILD_DIR/android/app/build/outputs/apk/app-release-unaligned.apk"
+  # do not delete the files we're trying to upload
+  skip_cleanup: true
+  # only deploy if
+  on:
+    # we are on this repo
+    repo: preetb123/my-reddit
+    # and we are building a tag
+    tags: true
